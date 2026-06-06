@@ -40,14 +40,12 @@ resource "aws_subnet" "public_web" {
   vpc_id                  = aws_vpc.capstone_vpc.id
   cidr_block              = var.public_subnet_cidr
   map_public_ip_on_launch = true
-  availability_zone       = "eu-west-2 a"
   tags                    = { Name = "capstone-public-web-subnet" }
 }
 
 resource "aws_subnet" "private_app" {
   vpc_id            = aws_vpc.capstone_vpc.id
   cidr_block        = var.private_subnet_cidr
-  availability_zone = "eu-west-2 a"
   tags              = { Name = "capstone-private-app-subnet" }
 }
 
