@@ -39,7 +39,7 @@ resource "aws_vpc" "capstone_vpc" {
 resource "aws_subnet" "public_web" {
   vpc_id                  = aws_vpc.capstone_vpc.id
   cidr_block              = var.public_subnet_cidr
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   tags                    = { Name = "capstone-public-web-subnet" }
 }
 
