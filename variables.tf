@@ -15,6 +15,26 @@ variable "private_subnet_cidr" {
 
 variable "instance_type" {
   type        = string
-  default     = "t3.micro" # Free-tier eligible instance type
+  default     = "t3.micro"
   description = "The hardware sizing SKU profile"
+}
+
+variable "azure_vpc_cidr" {
+  type    = string
+  default = "10.20.0.0/16"
+}
+
+variable "azure_public_subnet_cidr" {
+  type    = string
+  default = "10.20.1.0/24"
+}
+
+variable "azure_private_subnet_cidr" {
+  type    = string
+  default = "10.20.2.0/24"
+}
+
+variable "azure_instance_type" {
+  type    = string
+  default = "Standard_B1s"
 }
