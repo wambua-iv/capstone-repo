@@ -1,4 +1,4 @@
-name: Scan, Build and Push
+name: Cloud DevSecOps Pipeline
 on: [push, workflow_dispatch]
 
 jobs:
@@ -16,3 +16,98 @@ jobs:
         with:
           directory: .
           soft_fail: true
+
+  security_scan:
+      name: Security Scans (Gitleaks, SAST Scan, NPM audit)
+      runs-on: ubuntu-latest
+      steps:
+        - name: Code Checkout
+          uses: actions/checkout@v6
+          with:
+            fetch-depth: 0
+  
+        - name: Secrets Scan
+          uses: gitleaks/gitleaks-action@v2
+          env:
+            GITHUB_TOKEN: ${{ secrets.HUB_TOKEN }}
+  
+        - name: Code Checkout
+          uses: actions/checkout@v6
+          
+        - name: SAST Scan (Semgrep)
+          run: |
+            docker run --rm -v "${{ github.workspace }}:/src" semgrep/semgrep \
+            semgrep scan --config auto --error
+
+  image_build_scan:
+      name: Docker Build and Image Scan
+      needs: security_scan
+      runs-on: ubuntu-latest
+  
+      steps:
+        - name: Code Checkout
+          uses: actions/checkout@v3
+  
+        - name: Configure AWS Credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.AWS_REGION }}
+  
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v2
+  
+        - name: Build Docker Image
+          env:
+            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+            ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+            IMAGE_TAG: ${{ github.sha }}
+          run: |
+            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+  
+        - name: Trivy Image Scan
+          uses: aquasecurity/trivy-action@master
+          with:
+            image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+            format: 'table'
+            exit-code: '1' 
+            ignore-unfixed: true
+            vuln-type: 'os,library'
+            severity: 'CRITICAL,HIGH'
+
+
+        - name: Push Image to ECR
+          if: success()
+          env:
+            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+            ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+            IMAGE_TAG: ${{ github.sha }}
+          run: |
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+
+  dast-security-scan:
+      name: "OWASP ZAP Baseline Scan"
+      runs-on: ubuntu-latest
+      timeout-minutes: 20
+      steps:
+        - name: Spin Up Application Run Instance
+          run: |
+            docker run -d -p 5670:5670 --name running-order-api $ECR_REGISTRY/$ECR_REPOSITORY:latest
+            sleep 5
+            curl -v http://localhost:5670/
+
+        - name: Execute OWASP ZAP DAST Baseline Scan
+          run: |
+                mkdir -p zap-reports
+                chmod 777 zap-reports
+                
+                docker run --rm \
+                  -v $(pwd)/zap-reports:/zap/wrk/:rw \
+                  ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+                  -t http://172.17.0.1:5670/ \
+                  -r dast-security-report.html || true

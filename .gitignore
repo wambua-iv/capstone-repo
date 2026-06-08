@@ -1,2 +1,6 @@
 venv
 .terraform
+output
+main
+order-app
+zap-reports
