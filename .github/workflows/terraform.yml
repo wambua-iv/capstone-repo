@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  job1:
+  duo-cloud-deployment:
     runs-on: ubuntu-latest
     env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
