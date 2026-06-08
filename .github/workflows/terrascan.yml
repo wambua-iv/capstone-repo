@@ -18,7 +18,8 @@ jobs:
           soft_fail: true
 
   security_scan:
-      name: Security Scans (Gitleaks, SAST Scan, NPM audit)
+      name: Security Scans (Gitleaks, SAST Scan)
+      needs: terraform-scan
       runs-on: ubuntu-latest
       steps:
         - name: Code Checkout

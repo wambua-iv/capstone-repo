@@ -7,6 +7,7 @@ RUN go mod tidy
 
 COPY . .
 
+RUN apk update && apk add --no-cache --upgrade musl musl-utils
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o order-app ./src/main.go
 
