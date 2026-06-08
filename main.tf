@@ -141,7 +141,7 @@ provider "azurerm" {
 }
 resource "azurerm_resource_group" "capstone_rg" {
   name     = "capstone-foundation"
-  location = "austriaeast" 
+  location = "southafricanorth" 
 }
 
 
@@ -282,7 +282,7 @@ resource "azurerm_linux_virtual_machine" "web_server" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-gen2"
+    sku       = "24_04-lts-gen2"
     version   = "latest"
   }
   os_disk {
@@ -316,7 +316,7 @@ resource "azurerm_linux_virtual_machine" "app_server" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-gen2"
+    sku       = "24_04-lts-gen2"
     version   = "latest"
   }
 

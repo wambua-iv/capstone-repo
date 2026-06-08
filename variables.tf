@@ -36,5 +36,5 @@ variable "azure_private_subnet_cidr" {
 
 variable "azure_instance_type" {
   type    = string
-  default = "Standard_B1s"
+  default = "Standard_D2s_v3"
 }
