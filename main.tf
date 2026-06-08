@@ -147,7 +147,7 @@ resource "azurerm_resource_group" "capstone_rg" {
 
 resource "azurerm_virtual_network" "capstone_vnet" {
   name                = "capstone-foundation-vnet"
-  address_space       = [var.vpc_cidr]
+  address_space       = [var.azure_vpc_cidr]
   location            = azurerm_resource_group.capstone_rg.location
   resource_group_name = azurerm_resource_group.capstone_rg.name
 
