@@ -48,7 +48,7 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	err := server.ListenAndServeTLS("certs/server.crt", "certs/server.key")
+	err := server.ListenAndServeTLS("/certs/server.crt", "/certs/server.key")
 	if err != nil {
 		panic("Failed to initialize secure listener: " + err.Error())
 	}

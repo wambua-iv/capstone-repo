@@ -97,18 +97,12 @@ jobs:
       runs-on: ubuntu-latest
       timeout-minutes: 20
       steps:
-        - name: Generate Dynamic Ephemeral Certificates
-          run: |
-                  mkdir -p certs
-                  openssl req -x509 -newkey rsa:4096 -keyout certs/server.key -out certs/server.crt -days 1 -nodes \
-                    -subj "/CN=localhost/O=Meridian Retail Group/OU=CI-CD Pipeline Testing"
-                  chmod 600 certs/server.key
         
         - name: Spin Up Application Run Instance
           run: |
-            docker run -d -p 5670:5670 -v $(pwd)/certs:/app/certs $ECR_REGISTRY/$ECR_REPOSITORY:latest
+            docker run -d -p 5670:5670 $ECR_REGISTRY/$ECR_REPOSITORY:latest
             sleep 5
-            curl -v http://localhost:5670/
+            curl -k https://localhost:5670/
 
         - name: Execute OWASP ZAP DAST Baseline Scan
           run: |

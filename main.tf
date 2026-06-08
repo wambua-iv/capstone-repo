@@ -141,7 +141,7 @@ provider "azurerm" {
 }
 resource "azurerm_resource_group" "capstone_rg" {
   name     = "capstone-foundation"
-  location = "centralus" 
+  location = "austriaeast" 
 }
 
 
@@ -234,7 +234,8 @@ resource "azurerm_public_ip" "web_pip" {
   name                = "capstone-web-pip"
   location            = azurerm_resource_group.capstone_rg.location
   resource_group_name = azurerm_resource_group.capstone_rg.name
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_network_interface" "web_nic" {
