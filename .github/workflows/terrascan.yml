@@ -92,6 +92,7 @@ jobs:
 
   dast-security-scan:
       name: "OWASP ZAP Baseline Scan"
+      needs: image_build_scan
       runs-on: ubuntu-latest
       timeout-minutes: 20
       steps:
