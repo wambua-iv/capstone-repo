@@ -40,3 +40,9 @@ jobs:
         
       - name: terraform apply
         run: terraform apply -auto-approve
+
+      - name: FinOps Automatic Teardown Recovery
+        if: failure()
+        run: |
+            echo "⚠️ CRITICAL ALERT: A validation checkpoint failed. Initiating automatic out-of-pocket budget protection cleanup..."
+            terraform destroy -auto-approve
