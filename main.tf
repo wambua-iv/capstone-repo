@@ -141,7 +141,7 @@ provider "azurerm" {
 }
 resource "azurerm_resource_group" "capstone_rg" {
   name     = "capstone-foundation"
-  location = "southafricanorth" 
+  location = "ukwest" 
 }
 
 
