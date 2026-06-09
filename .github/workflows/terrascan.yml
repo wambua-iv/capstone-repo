@@ -49,13 +49,6 @@ jobs:
         - name: Code Checkout
           uses: actions/checkout@v3
   
-        - name: Configure AWS Credentials
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
-  
         - name: Log in to Docker Hub
           uses: docker/login-action@v3
           with:
@@ -85,10 +78,13 @@ jobs:
       runs-on: ubuntu-latest
       timeout-minutes: 20
       steps:
+        - name: Create local test network
+          run: |
+                  docker network create capstone-net
         
         - name: Spin Up Application Run Instance
           run: |
-            docker run -d -p 5670:5670 wmiv/capstone
+            docker run -d --name capstone-store --network capstone-net   wmiv/capstone
             sleep 5
             curl -k https://localhost:5670/
 
@@ -98,7 +94,46 @@ jobs:
                 chmod 777 zap-reports
                 
                 docker run --rm \
+                  --network capstone-net \
                   -v $(pwd)/zap-reports:/zap/wrk/:rw \
                   ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
                   -t http://172.17.0.1:5670/ \
                   -r dast-security-report.html || true
+
+        - name: Upload ZAP DAST report
+          uses: actions/upload-artifact@v4
+          if: always()
+          with:
+                  name: zap-dast-report
+                  path: zap-reports/
+
+
+  software-bill-of-materials:
+    name: "SBOM by Syft"
+    needs: image_build_scan
+    runs-on: ubuntu-latest
+    steps: 
+      - name: generate software Bill of Materials
+        run: |
+          mkdir -p sbom-reports
+
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD/sbom-reports:/sbom" \
+            anchore/syft:latest \
+            wmiv/capstone:latest \
+            -o spdx-json=/sbom/meridian-static-app-sbom.spdx.json
+
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            anchore/syft:latest \
+            wmiv/capstone:latest \
+            -o table \
+            > sbom-reports/meridian-static-app-sbom.txt
+
+      - name: Upload SBOM reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sbom-report
+          path: sbom-reports/
