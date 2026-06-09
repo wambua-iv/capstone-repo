@@ -268,7 +268,7 @@ resource "azurerm_linux_virtual_machine" "web_server" {
   name                = "capstone-public-web-vm"
   resource_group_name = azurerm_resource_group.capstone_rg.name
   location            = azurerm_resource_group.capstone_rg.location
-  size                = var.instance_type
+  size                = var.azure_instance_type
   admin_username      = "ubuntu"
 
   network_interface_ids = [

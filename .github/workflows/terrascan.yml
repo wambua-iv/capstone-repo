@@ -56,41 +56,27 @@ jobs:
             aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             aws-region: ${{ secrets.AWS_REGION }}
   
-        - name: Login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v2
-  
-        - name: Build Docker Image
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-            IMAGE_TAG: ${{ github.sha }}
+        - name: Log in to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+        - name: Compile and Push Order Service Container
           run: |
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-            docker images
+                  docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/capstone:latest .
+                  docker push ${{ secrets.DOCKERHUB_USERNAME }}/capstone:latest
   
         - name: Trivy Image Scan
           uses: aquasecurity/trivy-action@master
           with:
-            image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+            image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/capstone:latest
             format: 'table'
             exit-code: '1' 
             ignore-unfixed: true
             vuln-type: 'os,library'
             severity: 'CRITICAL,HIGH'
             trivyignore: .trivyignore
-
-
-        - name: Push Image to ECR
-          if: success()
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-            IMAGE_TAG: ${{ github.sha }}
-          run: |
-                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
 
   dast-security-scan:
@@ -102,7 +88,7 @@ jobs:
         
         - name: Spin Up Application Run Instance
           run: |
-            docker run -d -p 5670:5670 $ECR_REGISTRY/$ECR_REPOSITORY:latest
+            docker run -d -p 5670:5670 wmiv/capstone
             sleep 5
             curl -k https://localhost:5670/
 
