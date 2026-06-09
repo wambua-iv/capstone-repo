@@ -281,8 +281,8 @@ resource "azurerm_linux_virtual_machine" "web_server" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "24_04-lts-gen2"
+    offer     = "ubuntu-24_04-lts" 
+    sku       = "server"           
     version   = "latest"
   }
   os_disk {
