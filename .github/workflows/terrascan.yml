@@ -18,9 +18,8 @@ jobs:
           soft_fail: true
 
       - name: configuration test
-        uses: instrumenta/conftest-action@master
-        with:
-          files: main.tf
+        run: |
+             docker run --rm -v $(pwd):/project openpolicyagent/conftest test main.tf
 
   security_scan:
       name: Security Scans (Gitleaks, SAST Scan)
