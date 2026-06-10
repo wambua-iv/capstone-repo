@@ -1,6 +1,6 @@
 package main
 
-deny contains [msg] if {
+deny if {
         resource := input.resource_changes[_]
         resource.type == "aws_ebs_volume"
 
@@ -12,7 +12,7 @@ deny contains [msg] if {
 
 allowed_types := ["t2.micro", "t2.small", "t3.medium"]
 
-deny contains [msg] if {
+deny if { 
         resource := input.resource_changes[_]
         resource.type == "aws_instance"
         actual_type := resource.change.after.instance_type
@@ -28,7 +28,7 @@ is_allowed(type) if {
 
 mandatory_tags := {"Environment", "Owner"}
 
-deny contains [msg] if {
+deny if {
         resource := input.resource_changes[_]
         tags := resource.change.after.tags
 
