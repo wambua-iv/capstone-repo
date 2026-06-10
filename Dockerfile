@@ -19,16 +19,14 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o order-app ./src/main.go
 
 
-FROM alpine:3.19 AS final
+FROM alpine:3.23 AS final
 
 WORKDIR /app
 
 RUN adduser --disabled-password --uid 10001 appuser
 
-COPY --from=builder  /app/certs /app/certs
-COPY --from=builder /app/order-app /app
-
-RUN chown -R appuser:appuser /app
+COPY --from=builder --chown=10001:10001 /app/certs /app/certs
+COPY --from=builder --chown=10001:10001 /app/order-app /app
 
 EXPOSE 5670
 

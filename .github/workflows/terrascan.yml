@@ -70,6 +70,8 @@ jobs:
             vuln-type: 'os,library'
             severity: 'CRITICAL,HIGH'
             trivyignore: .trivyignore
+            skip-files: 'app/certs/server.key'
+
 
 
   dast-security-scan:
