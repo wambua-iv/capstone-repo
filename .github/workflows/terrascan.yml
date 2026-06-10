@@ -17,6 +17,11 @@ jobs:
           directory: .
           soft_fail: true
 
+      - name: configuration test
+        uses: instrumenta/conftest-action@master
+        with:
+          files: main.tf
+
   security_scan:
       name: Security Scans (Gitleaks, SAST Scan)
       needs: terraform-scan
@@ -28,9 +33,13 @@ jobs:
             fetch-depth: 0
   
         - name: Secrets Scan
-          uses: gitleaks/gitleaks-action@v2
-          env:
-            GITHUB_TOKEN: ${{ secrets.HUB_TOKEN }}
+          run: |
+             echo "Downloading latest standalone open-source Gitleaks core..."
+             wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz
+             tar -zxvf gitleaks_8.18.2_linux_x64.tar.gz
+             chmod +x gitleaks
+             
+             ./gitleaks detect --verbose --redact
   
         - name: Code Checkout
           uses: actions/checkout@v6
