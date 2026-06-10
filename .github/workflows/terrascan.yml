@@ -88,7 +88,6 @@ jobs:
           run: |
             docker run -d --name capstone-store --network capstone-net   wmiv/capstone
             sleep 5
-            curl -k https://localhost:5670/
 
         - name: Execute OWASP ZAP DAST Baseline Scan
           run: |
@@ -99,7 +98,7 @@ jobs:
                   --network capstone-net \
                   -v $(pwd)/zap-reports:/zap/wrk/:rw \
                   ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-                  -t http://172.17.0.1:5670/ \
+                  -t https://capstone-store:5670/ \
                   -r dast-security-report.html || true
 
         - name: Upload ZAP DAST report
