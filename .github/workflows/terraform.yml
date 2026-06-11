@@ -1,4 +1,4 @@
-name: terrform demo pipeline
+name: terrform Duo Cloud deployment pipeline
 
 on:
   push:

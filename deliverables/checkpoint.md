@@ -1,46 +1,15 @@
- [ Developer Code Push / Commit ]
-                 │
-                 ▼
-  ┌────────────────────────────────────────┐
-  │ 1. Shift-Left Pre-Commit / Commit Gate │ ──► Fails if secrets or cleartext 
-  │    - GitLeaks (Secret & API Key Scan)  │     credentials are found.
-  └────────────────────────────────────────┘
-                 │
-                 ▼
-  ┌────────────────────────────────────────┐
-  │ 2. Static Application Security (SAST)  │ ──► Fails if High/Critical risks 
-  │    - Semgrep Engine Framework Scan     │     breach security thresholds.
-  └────────────────────────────────────────┘
-                 │
-                 ▼
-  ┌────────────────────────────────────────┐
-  │ 3. Infrastructure-as-Code (IaC) Gate   │ ──► Enforces specific cloud rules
-  │    - Checkov / Terrascan Plan Scan     |
-  | Open Policy Agent (OPA) Evaluation     │     (e.g., Block unencrypted storage).
-  └────────────────────────────────────────┘
-                 │
-                 ▼
-  ┌────────────────────────────────────────┐
-  │ 4. Supply Chain Security / Validation  │ ──► Drops untrusted registries and
-  │    - Trivy Vulnerability               │     images with Critical CVE profiles.
-  └────────────────────────────────────────┘
-                 │
-                 ▼
-  ┌────────────────────────────────────────┐
-  │ 5. Execute OWASP ZAP DAST Baseline Scan│ 
-  │                                        │     
-  └────────────────────────────────────────┘
-                 │
-                 ▼
-  ┌────────────────────────────────────────┐
-  │ 6. Generate software Bill of Materials │ ──► Generates immutable attestations 
-  └────────────────────────────────────────┘
-                 │
-                 ▼
-  ┌────────────────────────────────────────┐
-  │ 7. Image Upload to production registry │ 
-  │    - Production Cluster Deployment     │    
-  └────────────────────────────────────────┘
+
+```mermaid 
+flowchart TB
+id1{Developer commits code} --> id2(Commit Gate = Gitleaks Secret & API scan)
+id2 -->|Fails if secrets or credentials found | id3(Static Application Security)
+id3 -->|Fails if High/Critical risks breach threshold| id4(IaC Gate = Checkov/Terrascan & OPA evaluation)  
+id4 -->| Enforce cloud security policy | id5(Image Security and Validation = Trivy Vulnerability)
+id5 -->|Fails untrusted registries and Critical CVE| id6(Execute OWASP ZAP DAST Baseline)
+id6 --> id7(Generate software Bill of Materials)
+id7 --> id8(Image Upload to production Registry)
+```
+
 
   Check Point Rules
   > Prefer Pull requests are required.

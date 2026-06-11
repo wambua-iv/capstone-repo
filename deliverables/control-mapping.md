@@ -1,4 +1,5 @@
 |OPA Policy Rule Context             | Framework Reference | Enterprise Control Objective                                                     | Pipeline Tooling Verification         |
+| ---------------------------------- | ------------------- | -------------------------------------------------------------------------------- | ------------------------------------- |
 |aws_ebs_volume encryption           | NIST 800-53 SC-28   | Protect Data-at-Rest on block storage arrays via mandatory cryptography.         | Terraform Plan + OPA Static Scan      |
 |aws_instance size restriction       |ISO 27001 A.12.1.3   | FinOps Guardrail,Enforce capacity management and isolate non-prod pricing tier   | Terraform Plan + OPA Static Scan      |
 |mandatory_tags validation           | NIST 800-53 CM-8    | Establish structural asset inventory ownership (Environment, Owner)."            | Terraform Plan + OPA Static Scan      | 
