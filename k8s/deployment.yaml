@@ -25,6 +25,14 @@ spec:
         image: docker.io/wmiv/k8s-image:latest
         ports:
         - containerPort: 5670
+
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+              drop:
+              - ALL
         
         resources:
           limits:
