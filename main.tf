@@ -38,7 +38,7 @@ resource "aws_iam_role" "ec2_execute_role" {
 
 resource "aws_iam_instance_profile" "ec2_profile" {
   name = "capstone-ec2-instance-profile"
-  role = aws_iam_role.ec2_execution_role.name
+  role = aws_iam_role.ec2_execute_role.name
 }
 
 
