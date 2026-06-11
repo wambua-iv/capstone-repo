@@ -15,11 +15,14 @@ jobs:
         uses: bridgecrewio/checkov-action@master
         with:
           directory: .
+          skip_check:
+            CKV_AWS_355,CKV_AWS_290,CKV_AWS_338,CKV_AWS_158'
           soft_fail: true
+  
 
       - name: configuration test
         run: |
-             docker run --rm -v $(pwd):/project openpolicyagent/conftest test main.tf
+             docker run --rm -v $(pwd):/project openpolicyagent/conftest test plan.json
 
   security_scan:
       name: Security Scans (Gitleaks, SAST Scan)

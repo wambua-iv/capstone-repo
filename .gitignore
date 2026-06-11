@@ -1,7 +1,8 @@
-venv
+.venv
 .terraform
 output
 main
 order-app
 zap-reports
 sbom-reports
+gitleaks

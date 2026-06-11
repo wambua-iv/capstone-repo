@@ -2,137 +2,262 @@ terraform {
 
 }
 
-# provider "aws" {
-#   region = "eu-west-2"
+provider "aws" {
+  region = "eu-west-2"
+}
+
+data "aws_ami" "ubuntu" {
+    most_recent = true
+  owners      = ["099720109477"]
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+resource "aws_iam_role" "ec2_execution_role" {
+  name = "capstone-ec2-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action    = "sts:AssumeRole"
+        Effect    = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "capstone-ec2-instance-profile"
+  role = aws_iam_role.ec2_execution_role.name
+}
+
+
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.capstone_vpc.id
+  tags   = { Name = "capstone-igw" }
+}
+
+resource "aws_vpc" "capstone_vpc" {
+  cidr_block           = var.vpc_cidr
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name        = "capstone-foundation-vpc"
+    Environment = "dev"
+    Owner       = "capstone-architect"
+  }
+}
+
+resource "aws_flow_log" "vpc_flow_logs" {
+  iam_role_arn    = aws_iam_role.flow_log_role.arn
+  log_destination = aws_cloudwatch_log_group.flow_log_group.arn
+  traffic_type    = "ALL"
+  vpc_id          = aws_vpc.capstone_vpc.id
+}
+
+# resource "aws_cloudwatch_log_group" "flow_log_group" {
+#   name              = "/aws/vpc-flow-logs/capstone"
+#   retention_in_days = 7 
 # }
 
-# data "aws_ami" "ubuntu" {
-#     most_recent = true
-#   owners      = ["099720109477"]
-#   filter {
-#     name   = "name"
-#     values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-#   }
-#   filter {
-#     name   = "virtualization-type"
-#     values = ["hvm"]
-#   }
+# resource "aws_iam_role" "flow_log_role" {
+#   name = "capstone-vpc-flow-log-role"
+
+#   assume_role_policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = "sts:AssumeRole"
+#         Effect = "Allow"
+#         Principal = {
+#           Service = "vpc-flow-logs.amazonaws.com"
+#         }
+#       }
+#     ]
+#   })
 # }
 
-# resource "aws_internet_gateway" "igw" {
-#   vpc_id = aws_vpc.capstone_vpc.id
-#   tags   = { Name = "capstone-igw" }
+# resource "aws_iam_role_policy" "flow_log_policy" {
+#   name = "capstone-vpc-flow-log-policy"
+#   role = aws_iam_role.flow_log_role.id
+
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Action = [
+#           "logs:CreateLogStream",
+#           "logs:PutLogEvents",
+#           "logs:DescribeLogGroups",
+#           "logs:DescribeLogStreams"
+#         ]
+#         Effect   = "Allow"
+#         Resource = "*"
+#       }
+#     ]
+#   })
 # }
 
-# resource "aws_vpc" "capstone_vpc" {
-#   cidr_block           = var.vpc_cidr
-#   enable_dns_hostnames = true
-#   enable_dns_support   = true
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.capstone_vpc.id
 
-#   tags = {
-#     Name        = "capstone-foundation-vpc"
-#     Environment = "dev"
-#     Owner       = "capstone-architect"
-#   }
-# }
+  ingress = []
+  egress  = []
 
-# resource "aws_subnet" "public_web" {
-#   vpc_id                  = aws_vpc.capstone_vpc.id
-#   cidr_block              = var.public_subnet_cidr
-#   map_public_ip_on_launch = false
-#   tags                    = { Name = "capstone-public-web-subnet" }
-# }
+  tags = {
+    Name        = "capstone-vpc-default-isolated"
+    Environment = "Non-Prod"
+    Owner       = "capstone-architect"
 
-# resource "aws_subnet" "private_app" {
-#   vpc_id            = aws_vpc.capstone_vpc.id
-#   cidr_block        = var.private_subnet_cidr
-#   tags              = { Name = "capstone-private-app-subnet" }
-# }
+  }
+}
 
-# resource "aws_route_table" "public_rt" {
-#   vpc_id = aws_vpc.capstone_vpc.id
-#   route {
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_internet_gateway.igw.id
-#   }
-#   tags = { Name = "capstone-public-rt" }
-# }
+resource "aws_subnet" "public_web" {
+  vpc_id                  = aws_vpc.capstone_vpc.id
+  cidr_block              = var.public_subnet_cidr
+  map_public_ip_on_launch = false
+  tags                    = { Name = "capstone-public-web-subnet" }
+}
 
-# resource "aws_route_table_association" "public_assoc" {
-#   subnet_id      = aws_subnet.public_web.id
-#   route_table_id = aws_route_table.public_rt.id
-# }
+resource "aws_subnet" "private_app" {
+  vpc_id            = aws_vpc.capstone_vpc.id
+  cidr_block        = var.private_subnet_cidr
+  tags              = { Name = "capstone-private-app-subnet" }
+}
 
-# resource "aws_security_group" "web_sg" {
-#   name   = "capstone-web-sg"
-#   vpc_id = aws_vpc.capstone_vpc.id
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.capstone_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+  tags = { Name = "capstone-public-rt" }
+}
 
-#   ingress {
-#     description = "Allow HTTPS"
-#     from_port   = 443
-#     to_port     = 443
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
+resource "aws_route_table_association" "public_assoc" {
+  subnet_id      = aws_subnet.public_web.id
+  route_table_id = aws_route_table.public_rt.id
+}
 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# }
+resource "aws_security_group" "web_sg" {
+  name   = "capstone-web-sg"
+  vpc_id = aws_vpc.capstone_vpc.id
+  description = "Allow HTTPS"
 
-# resource "aws_security_group" "app_sg" {
-#   name        = "capstone-app-sg"
-#   description = "Isolate application tier from direct public exposure"
-#   vpc_id      = aws_vpc.capstone_vpc.id
 
-#   ingress {
-#     description     = "Allow backend ports strictly from Web tier security group"
-#     from_port       = 5670
-#     to_port         = 5670
-#     protocol        = "tcp"
-#     security_groups = [aws_security_group.web_sg.id]
-#   }
+  ingress {
+    description = "Allow HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-#   egress {
-#     from_port   = 0
-#     to_port     = 0
-#     protocol    = "-1"
-#     cidr_blocks = ["0.0.0.0/0"]
-#   }
-# }
+  egress {
+     description = "Allow HTTPS"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 
-# resource "aws_instance" "web_server" {
-#   ami                    = data.aws_ami.ubuntu.id
-#   instance_type          = var.instance_type
-#   subnet_id              = aws_subnet.public_web.id
-#   vpc_security_group_ids = [aws_security_group.web_sg.id]
+resource "aws_security_group" "app_sg" {
+  name        = "capstone-app-sg"
+  description = "Isolate application tier from direct public exposure"
+  vpc_id      = aws_vpc.capstone_vpc.id
 
-#   tags = {
-#     Name        = "capstone-public-web-vm"
-#     Environment = "dev"
-#     Role        = "Web-Tier"
-#     Cost-Center = "capstone-101"
-#     Lifecycle   = "ephemeral"
-#   }
-# }
+  ingress {
+    description     = "Allow backend ports strictly from Web tier security group"
+    from_port       = 5670
+    to_port         = 5670
+    protocol        = "tcp"
+    security_groups = [aws_security_group.web_sg.id]
+  }
 
-# resource "aws_instance" "app_server" {
-#   ami                    = data.aws_ami.ubuntu.id
-#   instance_type          = var.instance_type
-#   subnet_id              = aws_subnet.private_app.id
-#   vpc_security_group_ids = [aws_security_group.app_sg.id]
+  egress {
+    description     = "Allow backend ports strictly from Web tier security group"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 
-#   tags = {
-#     Name        = "capstone-private-app-vm"
-#     Environment = "dev"
-#     Role        = "App-Tier"
-#     Cost-Center = "capstone-101"
-#     Lifecycle   = "ephemeral"
-#   }
-# }
+resource "aws_instance" "web_server" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.public_web.id
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  monitoring = true
+  ebs_optimized               = true
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+
+
+
+  tags = {
+    Name        = "capstone-public-web-vm"
+    Environment = "dev"
+    Role        = "Web-Tier"
+    Cost-Center = "capstone-101"
+    Lifecycle   = "ephemeral"
+  }
+  metadata_options {
+    http_endpoint               = "enabled"  
+    http_tokens                 = "required" 
+    http_put_response_hop_limit = 1          
+    instance_metadata_tags      = "disabled" 
+  }
+
+  root_block_device {
+    volume_size           = 20
+    volume_type           = "gp3"
+    encrypted             = true 
+  }
+}
+
+resource "aws_instance" "app_server" {
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = var.instance_type
+  subnet_id              = aws_subnet.private_app.id
+  vpc_security_group_ids = [aws_security_group.app_sg.id]
+  monitoring = true
+  ebs_optimized               = true
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+
+  tags = {
+    Name        = "capstone-private-app-vm"
+    Environment = "dev"
+    Role        = "App-Tier"
+    Cost-Center = "capstone-101"
+    Lifecycle   = "ephemeral"
+  }
+
+  metadata_options {
+    http_endpoint               = "enabled"  
+    http_tokens                 = "required" 
+    http_put_response_hop_limit = 1          
+    instance_metadata_tags      = "disabled" 
+  }
+
+  root_block_device {
+    volume_size           = 20
+    volume_type           = "gp3"
+    encrypted             = true 
+  }
+}
 
 
 
@@ -247,7 +372,7 @@ resource "azurerm_network_interface" "web_nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.public_web.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.web_pip.id
+    # public_ip_address_id          = azurerm_public_ip.web_pip.id
   }
 }
 
@@ -270,14 +395,17 @@ resource "azurerm_linux_virtual_machine" "web_server" {
   location            = azurerm_resource_group.capstone_rg.location
   size                = var.azure_instance_type
   admin_username      = "ubuntu"
+  allow_extension_operations = false
+
 
   network_interface_ids = [
     azurerm_network_interface.web_nic.id,
   ]
 
-  
-  admin_password                  = "CapstoneP@ssw0rd123!"
-  disable_password_authentication = false
+  admin_ssh_key {
+      username   = "capstoneuser"
+      public_key = var.ssh_public_key
+    }
 
   source_image_reference {
     publisher = "Canonical"
@@ -305,13 +433,17 @@ resource "azurerm_linux_virtual_machine" "app_server" {
   location            = azurerm_resource_group.capstone_rg.location
   size                = var.azure_instance_type
   admin_username      = "ubuntu"
+  allow_extension_operations = false
+
 
   network_interface_ids = [
     azurerm_network_interface.app_nic.id,
   ]
 
-  admin_password                  = "CapstoneP@ssw0rd123!"
-  disable_password_authentication = false
+  admin_ssh_key {
+      username   = "capstoneuser"
+      public_key = var.ssh_public_key
+    }
 
   source_image_reference {
     publisher = "Canonical"

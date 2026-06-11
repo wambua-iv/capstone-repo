@@ -38,3 +38,8 @@ variable "azure_instance_type" {
   type    = string
   default = "Standard_D2ls_v7"
 }
+
+variable "ssh_public_key" {
+  type = string
+  
+}
