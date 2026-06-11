@@ -296,6 +296,7 @@ resource "azurerm_network_security_group" "app_nsg" {
 }
 
 
+
 resource "azurerm_subnet_network_security_group_association" "web_assoc" {
   subnet_id                 = azurerm_subnet.public_web.id
   network_security_group_id = azurerm_network_security_group.web_nsg.id
@@ -306,13 +307,6 @@ resource "azurerm_subnet_network_security_group_association" "app_assoc" {
   network_security_group_id = azurerm_network_security_group.app_nsg.id
 }
 
-resource "azurerm_public_ip" "web_pip" {
-  name                = "capstone-web-pip"
-  location            = azurerm_resource_group.capstone_rg.location
-  resource_group_name = azurerm_resource_group.capstone_rg.name
-  sku                 = "Standard"
-  allocation_method   = "Static"
-}
 
 resource "azurerm_network_interface" "web_nic" {
   name                = "capstone-web-nic"
@@ -323,7 +317,6 @@ resource "azurerm_network_interface" "web_nic" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.public_web.id
     private_ip_address_allocation = "Dynamic"
-    # public_ip_address_id          = azurerm_public_ip.web_pip.id
   }
 }
 
@@ -353,10 +346,10 @@ resource "azurerm_linux_virtual_machine" "web_server" {
     azurerm_network_interface.web_nic.id,
   ]
 
-  # admin_ssh_key {
-  #     username   = "capstoneuser"
-  #     public_key = var.ssh_public_key
-  #   }
+  admin_ssh_key {
+      username   = "capstoneuser"
+      public_key = var.ssh_public_key
+    }
 
   source_image_reference {
     publisher = "Canonical"
@@ -391,10 +384,10 @@ resource "azurerm_linux_virtual_machine" "app_server" {
     azurerm_network_interface.app_nic.id,
   ]
 
-  # admin_ssh_key {
-  #     username   = "capstoneuser"
-  #     public_key = var.ssh_public_key
-  #   }
+  admin_ssh_key {
+      username   = "capstoneuser"
+      public_key = var.ssh_public_key
+    }
 
   source_image_reference {
     publisher = "Canonical"

@@ -39,7 +39,7 @@ variable "azure_instance_type" {
   default = "Standard_D2ls_v7"
 }
 
-# variable "ssh_public_key" {
-#   type = string
-  
-# }
+variable "ssh_public_key" {
+  type = string
+  description = "Cryptographic public key string for host-level administrative access"
+}
