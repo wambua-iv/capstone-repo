@@ -359,10 +359,10 @@ resource "azurerm_linux_virtual_machine" "web_server" {
     azurerm_network_interface.web_nic.id,
   ]
 
-  admin_ssh_key {
-      username   = "capstoneuser"
-      public_key = var.ssh_public_key
-    }
+  # admin_ssh_key {
+  #     username   = "capstoneuser"
+  #     public_key = var.ssh_public_key
+  #   }
 
   source_image_reference {
     publisher = "Canonical"
@@ -397,10 +397,10 @@ resource "azurerm_linux_virtual_machine" "app_server" {
     azurerm_network_interface.app_nic.id,
   ]
 
-  admin_ssh_key {
-      username   = "capstoneuser"
-      public_key = var.ssh_public_key
-    }
+  # admin_ssh_key {
+  #     username   = "capstoneuser"
+  #     public_key = var.ssh_public_key
+  #   }
 
   source_image_reference {
     publisher = "Canonical"

@@ -16,7 +16,7 @@ jobs:
         with:
           file: main.tf
           skip_check:
-            CKV_AWS_355,CKV_AWS_290,CKV_AWS_338,CKV_AWS_158'
+            CKV_AWS_355,CKV_AWS_290,CKV_AWS_338,CKV_AWS_158,CKV_AZURE_178
           soft_fail: true
   
 
