@@ -7,7 +7,7 @@ provider "aws" {
 }
 
 data "aws_ami" "ubuntu" {
-    most_recent = true
+  most_recent = true
   owners      = ["099720109477"]
   filter {
     name   = "name"
@@ -26,8 +26,8 @@ resource "aws_iam_role" "ec2_execution_role" {
     Version = "2012-10-17"
     Statement = [
       {
-        Action    = "sts:AssumeRole"
-        Effect    = "Allow"
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
         Principal = {
           Service = "ec2.amazonaws.com"
         }
@@ -60,12 +60,6 @@ resource "aws_vpc" "capstone_vpc" {
   }
 }
 
-resource "aws_flow_log" "vpc_flow_logs" {
-  iam_role_arn    = aws_iam_role.flow_log_role.arn
-  log_destination = aws_cloudwatch_log_group.flow_log_group.arn
-  traffic_type    = "ALL"
-  vpc_id          = aws_vpc.capstone_vpc.id
-}
 
 resource "aws_default_security_group" "default" {
   vpc_id = aws_vpc.capstone_vpc.id
@@ -89,9 +83,9 @@ resource "aws_subnet" "public_web" {
 }
 
 resource "aws_subnet" "private_app" {
-  vpc_id            = aws_vpc.capstone_vpc.id
-  cidr_block        = var.private_subnet_cidr
-  tags              = { Name = "capstone-private-app-subnet" }
+  vpc_id     = aws_vpc.capstone_vpc.id
+  cidr_block = var.private_subnet_cidr
+  tags       = { Name = "capstone-private-app-subnet" }
 }
 
 resource "aws_route_table" "public_rt" {
@@ -109,8 +103,8 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 resource "aws_security_group" "web_sg" {
-  name   = "capstone-web-sg"
-  vpc_id = aws_vpc.capstone_vpc.id
+  name        = "capstone-web-sg"
+  vpc_id      = aws_vpc.capstone_vpc.id
   description = "Allow HTTPS"
 
 
@@ -123,7 +117,7 @@ resource "aws_security_group" "web_sg" {
   }
 
   egress {
-     description = "Allow HTTPS"
+    description = "Allow HTTPS"
     from_port   = 0
     to_port     = 0
     protocol    = "tcp"
@@ -145,7 +139,7 @@ resource "aws_security_group" "app_sg" {
   }
 
   egress {
-    description     = "Allow backend ports strictly from Web tier security group"
+    description = "Allow backend ports strictly from Web tier security group"
     from_port   = 0
     to_port     = 0
     protocol    = "tcp"
@@ -158,9 +152,9 @@ resource "aws_instance" "web_server" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public_web.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
-  monitoring = true
-  ebs_optimized               = true
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  monitoring             = true
+  ebs_optimized          = true
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
 
 
@@ -172,16 +166,16 @@ resource "aws_instance" "web_server" {
     Lifecycle   = "ephemeral"
   }
   metadata_options {
-    http_endpoint               = "enabled"  
-    http_tokens                 = "required" 
-    http_put_response_hop_limit = 1          
-    instance_metadata_tags      = "disabled" 
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+    instance_metadata_tags      = "disabled"
   }
 
   root_block_device {
-    volume_size           = 20
-    volume_type           = "gp3"
-    encrypted             = true 
+    volume_size = 20
+    volume_type = "gp3"
+    encrypted   = true
   }
 }
 
@@ -190,9 +184,9 @@ resource "aws_instance" "app_server" {
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.private_app.id
   vpc_security_group_ids = [aws_security_group.app_sg.id]
-  monitoring = true
-  ebs_optimized               = true
-  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+  monitoring             = true
+  ebs_optimized          = true
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   tags = {
     Name        = "capstone-private-app-vm"
@@ -203,16 +197,16 @@ resource "aws_instance" "app_server" {
   }
 
   metadata_options {
-    http_endpoint               = "enabled"  
-    http_tokens                 = "required" 
-    http_put_response_hop_limit = 1          
-    instance_metadata_tags      = "disabled" 
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+    instance_metadata_tags      = "disabled"
   }
 
   root_block_device {
-    volume_size           = 20
-    volume_type           = "gp3"
-    encrypted             = true 
+    volume_size = 20
+    volume_type = "gp3"
+    encrypted   = true
   }
 }
 
@@ -223,7 +217,7 @@ provider "azurerm" {
 }
 resource "azurerm_resource_group" "capstone_rg" {
   name     = "capstone-foundation"
-  location = "eastus" 
+  location = "eastus"
 }
 
 
@@ -284,7 +278,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "5670"
-    source_address_prefix      = var.azure_public_subnet_cidr 
+    source_address_prefix      = var.azure_public_subnet_cidr
     destination_address_prefix = "*"
   }
 
@@ -347,11 +341,11 @@ resource "azurerm_network_interface" "app_nic" {
 
 
 resource "azurerm_linux_virtual_machine" "web_server" {
-  name                = "capstone-public-web-vm"
-  resource_group_name = azurerm_resource_group.capstone_rg.name
-  location            = azurerm_resource_group.capstone_rg.location
-  size                = var.azure_instance_type
-  admin_username      = "ubuntu"
+  name                       = "capstone-public-web-vm"
+  resource_group_name        = azurerm_resource_group.capstone_rg.name
+  location                   = azurerm_resource_group.capstone_rg.location
+  size                       = var.azure_instance_type
+  admin_username             = "ubuntu"
   allow_extension_operations = false
 
 
@@ -366,13 +360,13 @@ resource "azurerm_linux_virtual_machine" "web_server" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "ubuntu-24_04-lts" 
-    sku       = "server"           
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
     version   = "latest"
   }
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS" 
+    storage_account_type = "Standard_LRS"
   }
 
   tags = {
@@ -385,11 +379,11 @@ resource "azurerm_linux_virtual_machine" "web_server" {
 }
 
 resource "azurerm_linux_virtual_machine" "app_server" {
-  name                = "capstone-private-app-vm"
-  resource_group_name = azurerm_resource_group.capstone_rg.name
-  location            = azurerm_resource_group.capstone_rg.location
-  size                = var.azure_instance_type
-  admin_username      = "ubuntu"
+  name                       = "capstone-private-app-vm"
+  resource_group_name        = azurerm_resource_group.capstone_rg.name
+  location                   = azurerm_resource_group.capstone_rg.location
+  size                       = var.azure_instance_type
+  admin_username             = "ubuntu"
   allow_extension_operations = false
 
 
@@ -404,8 +398,8 @@ resource "azurerm_linux_virtual_machine" "app_server" {
 
   source_image_reference {
     publisher = "Canonical"
-    offer     = "ubuntu-24_04-lts" 
-    sku       = "server"           
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
     version   = "latest"
   }
 
