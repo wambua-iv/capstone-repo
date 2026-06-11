@@ -34,14 +34,13 @@ func routes() *http.ServeMux {
 func main() {
 	routes := routes()
 
-	// Harden the TLS Configuration profile to eliminate weak cipher suites
 	cfg := &tls.Config{
 		MinVersion:               tls.VersionTLS13, // Enforce modern TLS 1.3
 		PreferServerCipherSuites: true,
 	}
 
 	server := &http.Server{
-		Addr:         ":5670", // Target your design-level application backend port
+		Addr:         ":5670", 
 		Handler:      routes,
 		TLSConfig:    cfg,
 		ReadTimeout:  5 * time.Second,

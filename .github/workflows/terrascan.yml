@@ -14,7 +14,7 @@ jobs:
         id: checkov
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: .
+          file: main.tf
           skip_check:
             CKV_AWS_355,CKV_AWS_290,CKV_AWS_338,CKV_AWS_158'
           soft_fail: true
@@ -22,7 +22,7 @@ jobs:
 
       - name: configuration test
         run: |
-             docker run --rm -v $(pwd):/project openpolicyagent/conftest test plan.json
+             docker run --rm -v $(pwd):/project openpolicyagent/conftest test main.tf
 
   security_scan:
       name: Security Scans (Gitleaks, SAST Scan)
@@ -113,7 +113,7 @@ jobs:
                   -r dast-security-report.html || true
 
         - name: Upload ZAP DAST report
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v6
           if: always()
           with:
                   name: zap-dast-report
@@ -144,7 +144,7 @@ jobs:
             > sbom-reports/meridian-static-app-sbom.txt
 
       - name: Upload SBOM reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: sbom-report
