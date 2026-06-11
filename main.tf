@@ -20,7 +20,7 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_iam_role" "ec2_execute_role" {
-  name = "capstone-ec2-execution-role"
+  name = "capstone-ec2-execute-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
