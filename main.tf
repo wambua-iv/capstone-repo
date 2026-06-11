@@ -19,7 +19,7 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-resource "aws_iam_role" "ec2_execution_role" {
+resource "aws_iam_role" "ec2_execute_role" {
   name = "capstone-ec2-execution-role"
 
   assume_role_policy = jsonencode({
@@ -347,7 +347,7 @@ resource "azurerm_linux_virtual_machine" "web_server" {
   ]
 
   admin_ssh_key {
-      username   = "capstoneuser"
+      username   = "ubuntu"
       public_key = var.ssh_public_key
     }
 
@@ -385,7 +385,7 @@ resource "azurerm_linux_virtual_machine" "app_server" {
   ]
 
   admin_ssh_key {
-      username   = "capstoneuser"
+      username   = "ubuntu"
       public_key = var.ssh_public_key
     }
 
